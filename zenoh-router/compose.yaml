@@ -5,12 +5,33 @@
 # apps). Install this once; anything that joins `spirisynq` -- including
 # camera-ingress and camera-debug-ui -- discovers it and each other
 # through it automatically, no per-app configuration needed.
+#
+# Two routers, because there are two UDP broadcast/multicast domains that
+# don't reach each other: the docker bridge network `spirisynq`, and the
+# host's real LAN (where SpiriSynq peers running outside docker, e.g.
+# network_mode: host apps or other machines, do their multicast
+# scouting). `zenoh-router` sits on `spirisynq` and is reachable from the
+# host over its published loopback port. `zenoh-router-host` runs with
+# network_mode: host so it can scout/listen on the real LAN, and holds a
+# static TCP connection to `zenoh-router` so traffic routes between the
+# two domains.
 services:
   zenoh-router:
     image: eclipse/zenoh:latest
     restart: unless-stopped
     networks:
       - spirisynq
+    ports:
+      - "127.0.0.1:7447:7447"
+    command: ["-l", "tcp/0.0.0.0:7447"]
+
+  zenoh-router-host:
+    image: eclipse/zenoh:latest
+    restart: unless-stopped
+    network_mode: host
+    depends_on:
+      - zenoh-router
+    command: ["-e", "tcp/localhost:7447"]
 
 networks:
   spirisynq:

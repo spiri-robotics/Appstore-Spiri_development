@@ -11,8 +11,11 @@ services:
     image: ghcr.io/spiri-robotics/spiricamera:latest
     restart: unless-stopped
     command: ["SpiriCamera", "run"]
-    # zenoh's peer discovery relies on LAN multicast.
-    network_mode: host
+    # Joins the spirisynq network rather than relying on LAN multicast
+    # (which a docker bridge doesn't pass); zenoh-router bridges this
+    # into the rest of SpiriSynq. See the zenoh-router app.
+    networks:
+      - spirisynq
     environment:
       - SPIRICAMERA_SOURCE=${SOURCE:-testimage://pm5544}
       - SPIRICAMERA_QUALITY=${QUALITY:-80}
@@ -21,3 +24,7 @@ services:
       - SPIRICAMERA_FRAMERATE=${FRAMERATE:-30}
     # devices:
     #   - ${SOURCE}:${SOURCE}
+
+networks:
+  spirisynq:
+    external: true
