@@ -22,7 +22,10 @@ services:
     networks:
       - spirisynq
     ports:
-      - "127.0.0.1:7447:7447"
+      # Published on a different port than zenoh-router-host's default
+      # 7447 below -- they'd otherwise collide once zenoh-router-host
+      # (network_mode: host) shares the host's network namespace.
+      - "127.0.0.1:7448:7447"
     command: ["-l", "tcp/0.0.0.0:7447"]
 
   zenoh-router-host:
@@ -31,7 +34,7 @@ services:
     network_mode: host
     depends_on:
       - zenoh-router
-    command: ["-e", "tcp/localhost:7447"]
+    command: ["-e", "tcp/localhost:7448"]
 
 networks:
   spirisynq:

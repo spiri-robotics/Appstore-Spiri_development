@@ -8,6 +8,14 @@ services:
     image: ghcr.io/spiri-robotics/spiricamera:latest
     restart: unless-stopped
     command: ["python", "-m", "SpiriCamera.ui"]
-    # zenoh's peer discovery relies on LAN multicast; this also puts
-    # the NiceGUI page straight on the host's network, port 8080.
-    network_mode: host
+    # Joins the spirisynq network rather than relying on LAN multicast
+    # (which a docker bridge doesn't pass); zenoh-router bridges this
+    # into the rest of SpiriSynq. See the zenoh-router app.
+    networks:
+      - spirisynq
+    ports:
+      - "8080:8080"
+
+networks:
+  spirisynq:
+    external: true
