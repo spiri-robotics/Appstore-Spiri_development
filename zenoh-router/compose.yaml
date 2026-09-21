@@ -1,0 +1,17 @@
+# zenoh-router: lets SpiriSynq peers on the `spirisynq` network find each
+# other without LAN multicast, which doesn't cross a docker bridge (and
+# doesn't cross the per-project default networks docker compose gives
+# camera-ingress and camera-debug-ui when they're installed as separate
+# apps). Install this once; anything that joins `spirisynq` -- including
+# camera-ingress and camera-debug-ui -- discovers it and each other
+# through it automatically, no per-app configuration needed.
+services:
+  zenoh-router:
+    image: eclipse/zenoh:latest
+    restart: unless-stopped
+    networks:
+      - spirisynq
+
+networks:
+  spirisynq:
+    name: spirisynq
