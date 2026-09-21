@@ -8,14 +8,19 @@ services:
     image: ghcr.io/spiri-robotics/spiricamera:latest
     restart: unless-stopped
     command: ["python", "-m", "SpiriCamera.ui"]
-    # Joins the spirisynq network rather than relying on LAN multicast
-    # (which a docker bridge doesn't pass); zenoh-router bridges this
-    # into the rest of SpiriSynq. See the zenoh-router app.
+    # On `spirisynq`, not host: the zenoh-router app on that network lets
+    # peers reach each other without LAN multicast, and SpiriConfig's
+    # plugin discovery needs the container's bridge-network IP anyway.
+    # Install zenoh-router first.
     networks:
       - spirisynq
-    ports:
-      - "8080:8080"
+    labels:
+      spiriconfig.plugin.name: camera-debug-ui
+      spiriconfig.plugin.port: "8080"
+      spiriconfig.plugin.title: Camera Debug
+      spiriconfig.plugin.icon: camera_alt
 
 networks:
   spirisynq:
+    name: spirisynq
     external: true
