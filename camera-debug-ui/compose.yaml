@@ -5,7 +5,7 @@
 # source string for.
 services:
   camera-debug-ui:
-    image: ghcr.io/spiri-robotics/spiricamera:latest
+    image: ghcr.io/spiri-robotics/spiricamera:0.1.0
     restart: unless-stopped
     command: ["python", "-m", "SpiriCamera.ui"]
     # On `spirisynq`, not host: the zenoh-router app on that network lets
