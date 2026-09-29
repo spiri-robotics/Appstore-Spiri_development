@@ -17,7 +17,7 @@
 # two domains.
 services:
   zenoh-router:
-    image: eclipse/zenoh:latest
+    image: eclipse/zenoh:1.9.0
     restart: unless-stopped
     networks:
       - spirisynq
@@ -29,7 +29,7 @@ services:
     command: ["-l", "tcp/0.0.0.0:7447"]
 
   zenoh-router-host:
-    image: eclipse/zenoh:latest
+    image: eclipse/zenoh:1.9.0
     restart: unless-stopped
     network_mode: host
     depends_on:
