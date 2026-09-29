@@ -1,0 +1,10 @@
+# Opens a PR here whenever an app's pinned image has a newer version tag,
+# so upstream projects (e.g. SpiriCamera) need no credentials for this
+# repo -- they just publish tagged images. Only version tags are bumped,
+# so an app has to pin one (not :latest) to be tracked.
+version: 2
+updates:
+  - package-ecosystem: docker-compose
+    directories: ["/camera-*"]
+    schedule:
+      interval: daily
