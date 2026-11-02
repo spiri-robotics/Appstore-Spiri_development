@@ -71,7 +71,7 @@ x-spiri-settings:
 
 services:
   cloud-link:
-    image: ghcr.io/spiri-robotics/spiricloudlink/cloud-link:0.1.0
+    image: ghcr.io/spiri-robotics/spiricloudlink/cloud-link:0.1.1
     restart: unless-stopped
     environment:
       CLOUD_LINK_URL: ${CLOUD_LINK_URL:-}
@@ -91,7 +91,7 @@ services:
   camera-whep:
     # SpiriCamera's image, serving a mirror of the camera as WHEP; see
     # camera-whep/camera_whep.py.
-    image: ghcr.io/spiri-robotics/spiricloudlink/camera-whep:0.1.0
+    image: ghcr.io/spiri-robotics/spiricloudlink/camera-whep:0.1.1
     restart: unless-stopped
     environment:
       CLOUD_LINK_CAMERA: ${CLOUD_LINK_CAMERA:-./camera1}
@@ -105,12 +105,12 @@ services:
 
   mediamtx:
     # The stock MediaMTX with mediamtx/mediamtx.yml: WHEP only, read-only.
-    image: ghcr.io/spiri-robotics/spiricloudlink/mediamtx:0.1.0
+    image: ghcr.io/spiri-robotics/spiricloudlink/mediamtx:0.1.1
     restart: unless-stopped
     network_mode: host
 
   netbird:
-    image: ghcr.io/spiri-robotics/spiricloudlink/netbird:0.1.0
+    image: ghcr.io/spiri-robotics/spiricloudlink/netbird:0.1.1
     restart: unless-stopped
     network_mode: host
     cap_add:
