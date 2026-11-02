@@ -22,6 +22,9 @@ services:
       - SPIRICAMERA_FRAME_WIDTH=${FRAME_WIDTH:-1920}
       - SPIRICAMERA_FRAME_HEIGHT=${FRAME_HEIGHT:-1080}
       - SPIRICAMERA_FRAMERATE=${FRAMERATE:-30}
+    volumes:
+      # The host's name is the camera's base topic, not the container's.
+      - /etc/hostname:/etc/spirisynq_base_topic:ro
     # devices:
     #   - ${SOURCE}:${SOURCE}
 
