@@ -1,14 +1,46 @@
-# camera-ingress: captures from a source and publishes frames onto
-# SpiriSynq, continuously, until stopped.
+# camera-ingress: captures from the SiYi camera and publishes it onto
+# SpiriSynq, as cameras/<CAMERA_NAME>/raw, hud and preview (hud and preview
+# relay raw in-process), and serves each of them over RTSP.
 #
-# Defaults to the bundled synthetic test pattern so it runs with no
-# hardware attached -- useful for trying the app store entry itself.
-# For a real camera, set SOURCE (e.g. SOURCE=/dev/video0 or
-# SOURCE=rtsp://user:pass@host/stream) and, for a local device, add a
-# devices: mapping for it.
+# The SiYi camera's video crosses the radio link, so it is pulled exactly
+# once, here. Everything else reads from this app, never the camera itself:
+#
+#   QGC:        rtsp://<this host>:8554/raw  (or /hud, /preview), UDP only;
+#               its RTCP drives the camera's rate control.
+#   cloud-link: rtsp://127.0.0.1:8554/<stream>/relay, TCP, from its MediaMTX
+#               on this host, which serves Spiri Cloud's Frigate as WHEP.
+#
+# Each stream is encoded to H.264 once, in this process, however many
+# viewers, and only while one is watching.
+x-spiri-settings:
+  - env: CAMERA_SOURCE
+    label: Camera stream
+    help: >-
+      The camera's own RTSP stream, pulled once, over UDP. The SiYi camera's
+      is rtsp://192.168.144.25:8554/video1.
+    default: rtsp://192.168.144.25:8554/video1
+  - env: RESOLUTION
+    widget: select
+    label: Resolution
+    help: >-
+      The most lines raw, hud and the RTSP streams have: 1080 for 1080p, down
+      to 360 for 360p. Fewer cost less CPU and bandwidth.
+    options: ["1080", "720", "480", "360"]
+    default: "1080"
+  - env: H264_PRESET
+    widget: select
+    label: Video encoder speed
+    help: >-
+      x264's preset for each stream's one H.264 encode. Faster costs less CPU
+      for a slightly worse picture at the same bitrate: at 720p30 on this Pi,
+      veryfast takes about one core, ultrafast half, medium over two.
+    options: ["ultrafast", "superfast", "veryfast", "faster", "fast", "medium"]
+    default: veryfast
+
 services:
   camera-ingress:
-    image: ghcr.io/spiri-robotics/spiricamera:0.2.0
+    # SpiriCamera 0.4.0, pinned.
+    image: ghcr.io/spiri-robotics/spiricamera:0.4.0@sha256:8cbad3a5a0409c7ec0503547aea078db68d240fcb521d416499656ea7818ab67
     restart: unless-stopped
     command: ["SpiriCamera", "run"]
     # Joins the spirisynq network rather than relying on LAN multicast
@@ -16,17 +48,29 @@ services:
     # into the rest of SpiriSynq. See the zenoh-router app.
     networks:
       - spirisynq
+    ports:
+      - "8554:8554/tcp"
+      - "8000-8003:8000-8003/udp"
     environment:
-      - SPIRICAMERA_SOURCE=${SOURCE:-testimage://pm5544}
+      - SPIRICAMERA_SOURCE=${CAMERA_SOURCE:-rtsp://192.168.144.25:8554/video1}
+      # The SiYi camera has no RTSP over TCP.
+      - OPENCV_FFMPEG_CAPTURE_OPTIONS=rtsp_transport;udp
+      # Published as cameras/1/raw, hud and preview.
+      - SPIRICAMERA_CAMERA_NAME=1
       - SPIRICAMERA_QUALITY=${QUALITY:-80}
-      - SPIRICAMERA_FRAME_WIDTH=${FRAME_WIDTH:-1920}
-      - SPIRICAMERA_FRAME_HEIGHT=${FRAME_HEIGHT:-1080}
+      # Wide enough that the height alone bounds the picture.
+      - SPIRICAMERA_FRAME_WIDTH=3840
+      - SPIRICAMERA_FRAME_HEIGHT=${RESOLUTION:-1080}
       - SPIRICAMERA_FRAMERATE=${FRAMERATE:-30}
+      - SPIRICAMERA_H264_PRESET=${H264_PRESET:-veryfast}
+      # Mounted on spirimav's gimbal, so the camera has a pose and looks where it does.
+      # ./ is this robot's own topic.
+      - SPIRICAMERA_RELATIVE_TO=${RELATIVE_TO:-./robot_gimbal1}
+      # spirimav's HUD widgets, drawn on cameras/1/hud.
+      - SPIRICAMERA_HUD_WIDGETS=${HUD_WIDGETS:-./hud/widgets/horizon ./hud/widgets/heading ./hud/widgets/gimbal1 ./hud/widgets/battery ./hud/widgets/flight ./hud/widgets/status ./robot_home_hud ./robot_roi_hud}
     volumes:
       # The host's name is the camera's base topic, not the container's.
       - /etc/hostname:/etc/spirisynq_base_topic:ro
-    # devices:
-    #   - ${SOURCE}:${SOURCE}
 
 networks:
   spirisynq:
