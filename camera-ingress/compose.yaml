@@ -27,6 +27,17 @@ x-spiri-settings:
       to 360 for 360p. Fewer cost less CPU and bandwidth.
     options: ["1080", "720", "480", "360"]
     default: "1080"
+  - env: LENS_HFOV
+    widget: number
+    label: Horizontal field of view (°)
+    help: >-
+      The camera's lens, so maps can draw what it sees; the vertical follows
+      from the picture's shape. The SiYi ZT30's zoom camera is 58.1° without
+      zoom (SiYi's spec), and neither it nor the autopilot reports the zoomed
+      one, so this is wrong when zoomed in. 0 for unknown.
+    default: "58.1"
+    min: 0
+    max: 179
   - env: H264_PRESET
     widget: select
     label: Video encoder speed
@@ -63,6 +74,8 @@ services:
       - SPIRICAMERA_FRAME_HEIGHT=${RESOLUTION:-1080}
       - SPIRICAMERA_FRAMERATE=${FRAMERATE:-30}
       - SPIRICAMERA_H264_PRESET=${H264_PRESET:-veryfast}
+      # The lens at 1x zoom; the vertical follows from the frame's aspect.
+      - SPIRICAMERA_HFOV=${LENS_HFOV:-58.1}
       # Mounted on spirimav's gimbal, so the camera has a pose and looks where it does.
       # ./ is this robot's own topic.
       - SPIRICAMERA_RELATIVE_TO=${RELATIVE_TO:-./robot_gimbal1}
