@@ -51,7 +51,7 @@ x-spiri-settings:
 services:
   camera-ingress:
     # SpiriCamera 0.4.0, pinned.
-    image: ghcr.io/spiri-robotics/spiricamera:0.4.0@sha256:8cbad3a5a0409c7ec0503547aea078db68d240fcb521d416499656ea7818ab67
+    image: ghcr.io/spiri-robotics/spiricamera:0.5.0@sha256:a532aa3b946676ba739ee8f5c4a30eb98497aa696b3e6991c5867b9493a1b344
     restart: unless-stopped
     command: ["SpiriCamera", "run"]
     # Joins the spirisynq network rather than relying on LAN multicast
